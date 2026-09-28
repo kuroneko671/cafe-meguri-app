@@ -1,0 +1,12 @@
+/* MapPage.css */
+
+.map-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.map-content-area {
+  width: 100%;
+  position: relative;
+}

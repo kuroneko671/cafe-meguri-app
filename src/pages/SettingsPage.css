@@ -1,0 +1,235 @@
+/* SettingsPage.css */
+
+.settings-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.settings-nav {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 4px;
+}
+
+.settings-nav-btn {
+  white-space: nowrap;
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  background: transparent;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.settings-nav-btn:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-main);
+}
+
+.settings-nav-btn.active {
+  background: var(--color-primary-600);
+  color: #ffffff;
+}
+
+.settings-content-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.settings-sec-title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+.settings-sec-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.settings-add-box {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--color-bg-subtle);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+}
+
+.settings-add-box .form-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.checkbox-label {
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-main);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.master-items-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.master-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+
+.master-item-name {
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.master-item-del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  font-size: 14px;
+  transition: opacity var(--transition-fast);
+}
+
+.master-item-del-btn:hover {
+  opacity: 1;
+}
+
+.person-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.frequent-toggle-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: #ffffff;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+
+.frequent-toggle-btn.active {
+  background: hsl(38, 92%, 92%);
+  border-color: hsl(38, 92%, 70%);
+  color: hsl(38, 90%, 35%);
+  font-weight: 700;
+}
+
+.backup-action-box {
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  justify-content: flex-start;
+}
+
+.json-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.json-preview-title {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.json-textarea {
+  font-family: monospace;
+  font-size: 11px;
+}
+
+.system-status-box,
+.user-profile-box {
+  padding: var(--space-4);
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.status-label {
+  font-weight: 700;
+  font-size: var(--text-xs);
+}
+
+.status-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.status-pill-green {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pill-amber {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-note {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.box-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.user-email-text {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin: 0;
+}

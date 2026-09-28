@@ -1,0 +1,268 @@
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import type { Area, Purpose, Person } from '../types';
+
+// 初期マスターデータ（新規作成時やローカル用のデフォルト値）
+const DEFAULT_AREAS = [
+  '仙台駅周辺',
+  '一番町・国分町',
+  '泉区',
+  '青葉区（その他）',
+  '宮城野区・若林区・太白区',
+  '名取・岩沼',
+  '富谷・大和',
+  '山形市',
+  'その他',
+];
+
+const DEFAULT_PURPOSES = [
+  '夫と行きたい',
+  'ともぴーと行きたい',
+  '友達とカフェ',
+  '友達と食事',
+  '飲みに行きたい',
+  'ひとりで行きたい',
+  'スイーツ巡り',
+  '作業・読書',
+];
+
+const DEFAULT_PERSONS = [
+  { name: '夫', is_frequent: true },
+  { name: 'ともぴー', is_frequent: true },
+  { name: '友人A', is_frequent: false },
+  { name: '友人B', is_frequent: false },
+];
+
+const LOCAL_STORAGE_KEYS = {
+  AREAS: 'cafe_app_areas',
+  PURPOSES: 'cafe_app_purposes',
+  PERSONS: 'cafe_app_persons',
+};
+
+// ==========================================
+// エリア (Areas)
+// ==========================================
+
+export async function fetchAreas(userId?: string): Promise<Area[]> {
+  if (isSupabaseConfigured && userId) {
+    const { data, error } = await supabase
+      .from('areas')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      return data as Area[];
+    }
+  }
+
+  // ローカルストレージからのフォールバック
+  const local = localStorage.getItem(LOCAL_STORAGE_KEYS.AREAS);
+  if (local) {
+    return JSON.parse(local);
+  }
+
+  // 初期シードデータ
+  const initialAreas: Area[] = DEFAULT_AREAS.map((name, index) => ({
+    id: `area-${index + 1}`,
+    user_id: userId || 'local-user',
+    name,
+    created_at: new Date().toISOString(),
+  }));
+  localStorage.setItem(LOCAL_STORAGE_KEYS.AREAS, JSON.stringify(initialAreas));
+  return initialAreas;
+}
+
+export async function createArea(name: string, userId: string): Promise<Area> {
+  const trimmed = name.trim();
+  if (isSupabaseConfigured && userId) {
+    const { data, error } = await supabase
+      .from('areas')
+      .insert({ name: trimmed, user_id: userId })
+      .select()
+      .single();
+
+    if (!error && data) {
+      return data as Area;
+    }
+  }
+
+  const areas = await fetchAreas(userId);
+  const existing = areas.find((a) => a.name === trimmed);
+  if (existing) return existing;
+
+  const newArea: Area = {
+    id: `area-${Date.now()}`,
+    user_id: userId,
+    name: trimmed,
+    created_at: new Date().toISOString(),
+  };
+  const updated = [...areas, newArea];
+  localStorage.setItem(LOCAL_STORAGE_KEYS.AREAS, JSON.stringify(updated));
+  return newArea;
+}
+
+export async function deleteArea(id: string, userId: string): Promise<void> {
+  if (isSupabaseConfigured && userId) {
+    await supabase.from('areas').delete().eq('id', id);
+  }
+  const areas = await fetchAreas(userId);
+  const updated = areas.filter((a) => a.id !== id);
+  localStorage.setItem(LOCAL_STORAGE_KEYS.AREAS, JSON.stringify(updated));
+}
+
+// ==========================================
+// 用途 (Purposes)
+// ==========================================
+
+export async function fetchPurposes(userId?: string): Promise<Purpose[]> {
+  if (isSupabaseConfigured && userId) {
+    const { data, error } = await supabase
+      .from('purposes')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      return data as Purpose[];
+    }
+  }
+
+  const local = localStorage.getItem(LOCAL_STORAGE_KEYS.PURPOSES);
+  if (local) {
+    return JSON.parse(local);
+  }
+
+  const initialPurposes: Purpose[] = DEFAULT_PURPOSES.map((name, index) => ({
+    id: `purpose-${index + 1}`,
+    user_id: userId || 'local-user',
+    name,
+    created_at: new Date().toISOString(),
+  }));
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PURPOSES, JSON.stringify(initialPurposes));
+  return initialPurposes;
+}
+
+export async function createPurpose(name: string, userId: string): Promise<Purpose> {
+  const trimmed = name.trim();
+  if (isSupabaseConfigured && userId) {
+    const { data, error } = await supabase
+      .from('purposes')
+      .insert({ name: trimmed, user_id: userId })
+      .select()
+      .single();
+
+    if (!error && data) {
+      return data as Purpose;
+    }
+  }
+
+  const purposes = await fetchPurposes(userId);
+  const existing = purposes.find((p) => p.name === trimmed);
+  if (existing) return existing;
+
+  const newPurpose: Purpose = {
+    id: `purpose-${Date.now()}`,
+    user_id: userId,
+    name: trimmed,
+    created_at: new Date().toISOString(),
+  };
+  const updated = [...purposes, newPurpose];
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PURPOSES, JSON.stringify(updated));
+  return newPurpose;
+}
+
+export async function deletePurpose(id: string, userId: string): Promise<void> {
+  if (isSupabaseConfigured && userId) {
+    await supabase.from('purposes').delete().eq('id', id);
+  }
+  const purposes = await fetchPurposes(userId);
+  const updated = purposes.filter((p) => p.id !== id);
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PURPOSES, JSON.stringify(updated));
+}
+
+// ==========================================
+// 人物 (Persons)
+// ==========================================
+
+export async function fetchPersons(userId?: string): Promise<Person[]> {
+  if (isSupabaseConfigured && userId) {
+    const { data, error } = await supabase
+      .from('persons')
+      .select('*')
+      .order('is_frequent', { ascending: false })
+      .order('name', { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      return data as Person[];
+    }
+  }
+
+  const local = localStorage.getItem(LOCAL_STORAGE_KEYS.PERSONS);
+  if (local) {
+    return JSON.parse(local);
+  }
+
+  const initialPersons: Person[] = DEFAULT_PERSONS.map((item, index) => ({
+    id: `person-${index + 1}`,
+    user_id: userId || 'local-user',
+    name: item.name,
+    is_frequent: item.is_frequent,
+    created_at: new Date().toISOString(),
+  }));
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PERSONS, JSON.stringify(initialPersons));
+  return initialPersons;
+}
+
+export async function createPerson(
+  name: string,
+  isFrequent: boolean,
+  userId: string
+): Promise<Person> {
+  const trimmed = name.trim();
+  if (isSupabaseConfigured && userId) {
+    const { data, error } = await supabase
+      .from('persons')
+      .insert({ name: trimmed, is_frequent: isFrequent, user_id: userId })
+      .select()
+      .single();
+
+    if (!error && data) {
+      return data as Person;
+    }
+  }
+
+  const persons = await fetchPersons(userId);
+  const existing = persons.find((p) => p.name === trimmed);
+  if (existing) return existing;
+
+  const newPerson: Person = {
+    id: `person-${Date.now()}`,
+    user_id: userId,
+    name: trimmed,
+    is_frequent: isFrequent,
+    created_at: new Date().toISOString(),
+  };
+  const updated = [...persons, newPerson];
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PERSONS, JSON.stringify(updated));
+  return newPerson;
+}
+
+export async function updatePerson(
+  id: string,
+  updates: Partial<Pick<Person, 'name' | 'is_frequent'>>,
+  userId: string
+): Promise<void> {
+  if (isSupabaseConfigured && userId) {
+    await supabase.from('persons').update(updates).eq('id', id);
+  }
+  const persons = await fetchPersons(userId);
+  const updated = persons.map((p) => (p.id === id ? { ...p, ...updates } : p));
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PERSONS, JSON.stringify(updated));
+}
+
+export async function deletePerson(id: string, userId: string): Promise<void> {
+  if (isSupabaseConfigured && userId) {
+    await supabase.from('persons').delete().eq('id', id);
+  }
+  const persons = await fetchPersons(userId);
+  const updated = persons.filter((p) => p.id !== id);
+  localStorage.setItem(LOCAL_STORAGE_KEYS.PERSONS, JSON.stringify(updated));
+}

@@ -1,0 +1,139 @@
+/* ShopsPage.css */
+
+.shops-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.page-subtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin: 2px 0 0 0;
+}
+
+.shops-controls-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sort-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.sort-select {
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-main);
+  font-size: var(--text-xs);
+  outline: none;
+  cursor: pointer;
+}
+
+.view-mode-toggle {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.view-btn {
+  background: var(--color-surface);
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+
+.view-btn.active {
+  background: var(--color-primary-100);
+  color: var(--color-primary-800);
+}
+
+/* リストテーブル表示 */
+.shops-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shop-list-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.shop-list-item:hover {
+  border-color: var(--color-primary-400);
+  background: var(--color-primary-50);
+  transform: translateX(4px);
+}
+
+.list-fav-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.shop-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shop-list-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shop-list-name {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-text-main);
+}
+
+.shop-list-sub {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  display: flex;
+  gap: 6px;
+}
+
+.list-address {
+  color: var(--color-text-subtle);
+}
+
+.shop-list-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.list-date {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,56 @@
+/* AppLayout.css */
+
+/* モバイル用トップバー（PCでは非表示） */
+.mobile-topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--topbar-height);
+  padding: 0 var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+
+.mobile-topbar-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: none;
+  border: none;
+  transition: background var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+  background: var(--color-neutral-100);
+}
+
+.hamburger-btn span {
+  display: block;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all var(--transition-fast);
+}
+
+@media (max-width: 768px) {
+  .mobile-topbar {
+    display: flex;
+  }
+}
