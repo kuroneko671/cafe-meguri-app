@@ -55,6 +55,16 @@
   --bg-surface-2: hsl(30, 15%, 96%);
   --bg-sidebar:   hsl(28, 45%, 16%);
 
+  /* モーダル・互換性用トークン */
+  --color-surface:    #ffffff;
+  --color-bg-subtle:  hsl(30, 15%, 97%);
+  --color-border:     hsl(30, 12%, 88%);
+  --color-text-main:  hsl(30, 10%, 15%);
+  --color-text-muted: hsl(30, 6%, 45%);
+  --color-text-subtle: hsl(30, 6%, 60%);
+  --z-modal: 1000;
+  --radius-2xl: 20px;
+
   /* テキスト */
   --text-primary:   var(--color-neutral-800);
   --text-secondary: var(--color-neutral-500);

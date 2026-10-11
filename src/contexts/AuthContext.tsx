@@ -8,17 +8,20 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  signInAsGuest: () => void;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: string | null; message?: string }>;
 };
 
 const LOCAL_STORAGE_USER_KEY = 'cafe_app_local_user';
+const LOCAL_STORAGE_ACCOUNTS_KEY = 'cafe_app_local_accounts';
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
   signOut: async () => {},
-  signInAsGuest: () => {},
+  signIn: async () => ({ error: null }),
+  signUp: async () => ({ error: null }),
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -49,32 +52,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const savedUser = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
       if (savedUser) {
         try {
-          setUser(JSON.parse(savedUser));
+          const parsed = JSON.parse(savedUser);
+          if (parsed.id === 'local-demo-user') {
+            // 旧デモ・ゲストユーザー情報は削除して未ログイン状態にする
+            localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+            setUser(null);
+          } else {
+            setUser(parsed);
+          }
         } catch {
-          // parse error
+          setUser(null);
         }
       } else {
-        // デフォルトでデモユーザーとして自動ログイン状態にしておく（初回アクセスですぐ利用可能）
-        const mockUser: any = {
-          id: 'local-demo-user',
-          email: 'demo@example.com',
-          created_at: new Date().toISOString(),
-        };
-        setUser(mockUser);
-        localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(mockUser));
+        // 未ログイン状態のままにする
+        setUser(null);
       }
       setLoading(false);
     }
   }, []);
 
-  const signInAsGuest = () => {
-    const mockUser: any = {
-      id: 'local-demo-user',
-      email: 'demo@example.com',
-      created_at: new Date().toISOString(),
-    };
-    setUser(mockUser);
-    localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(mockUser));
+  const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        return { error: 'メールアドレスまたはパスワードが正しくありません' };
+      }
+      setUser(data.user);
+      setSession(data.session);
+      return { error: null };
+    } else {
+      // ローカルストレージ動作モードでのログイン照合
+      const accountsRaw = localStorage.getItem(LOCAL_STORAGE_ACCOUNTS_KEY);
+      const accounts: { id: string; email: string; password: string }[] = accountsRaw
+        ? JSON.parse(accountsRaw)
+        : [];
+      const found = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+      if (!found || found.password !== password) {
+        return {
+          error: 'メールアドレスまたはパスワードが正しくありません。アカウントをお持ちでない場合は「新規アカウントを作成」から登録してください。',
+        };
+      }
+      const localUser = {
+        id: found.id,
+        email: found.email,
+        created_at: new Date().toISOString(),
+      } as unknown as User;
+      setUser(localUser);
+      localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(localUser));
+      return { error: null };
+    }
+  };
+
+  const signUp = async (email: string, password: string): Promise<{ error: string | null; message?: string }> => {
+    if (isSupabaseConfigured) {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        return { error: 'アカウントの作成に失敗しました: ' + error.message };
+      }
+      return { error: null, message: '確認メールを送信しました。' };
+    } else {
+      // ローカルストレージ動作モードでのアカウント作成
+      const accountsRaw = localStorage.getItem(LOCAL_STORAGE_ACCOUNTS_KEY);
+      const accounts: { id: string; email: string; password: string }[] = accountsRaw
+        ? JSON.parse(accountsRaw)
+        : [];
+      if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
+        return { error: 'このメールアドレスは既に登録されています' };
+      }
+      const newId = 'user-' + Date.now();
+      accounts.push({ id: newId, email, password });
+      localStorage.setItem(LOCAL_STORAGE_ACCOUNTS_KEY, JSON.stringify(accounts));
+      return { error: null, message: 'アカウントを作成しました。ログイン画面からログインしてください。' };
+    }
   };
 
   const signOut = async () => {
@@ -87,7 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut, signInAsGuest }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, signIn, signUp }}>
       {children}
     </AuthContext.Provider>
   );

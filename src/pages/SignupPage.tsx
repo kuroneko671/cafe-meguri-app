@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import './AuthPages.css';
 
 export const SignupPage = () => {
@@ -10,8 +10,10 @@ export const SignupPage = () => {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -27,12 +29,13 @@ export const SignupPage = () => {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      setError('アカウントの作成に失敗しました: ' + error.message);
+    const res = await signUp(email, password);
+    if (res.error) {
+      setError(res.error);
     } else {
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 3000);
+      setSuccessMessage(res.message || 'アカウントを作成しました。');
+      setTimeout(() => navigate('/login'), 2500);
     }
     setLoading(false);
   };
@@ -42,12 +45,15 @@ export const SignupPage = () => {
       <div className="auth-screen">
         <div className="auth-card">
           <div className="auth-success">
-            <div className="auth-success-icon">✉️</div>
-            <h2>確認メールを送信しました</h2>
-            <p>メールに記載のリンクをクリックして、アカウントを有効化してください。</p>
+            <div className="auth-success-icon">✨</div>
+            <h2>アカウント登録完了</h2>
+            <p>{successMessage}</p>
             <p style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              3秒後にログイン画面へ移動します...
+              まもなくログイン画面へ移動します...
             </p>
+            <Link to="/login" className="btn btn-primary" style={{ marginTop: 16 }}>
+              今すぐログイン画面へ
+            </Link>
           </div>
         </div>
       </div>

@@ -388,7 +388,7 @@ export const SettingsPage = () => {
             <div className="user-profile-box">
               <h4 className="box-title">ログインユーザー</h4>
               <p className="user-email-text">
-                📧 {user?.email || 'ローカルゲストユーザー'}
+                📧 {user?.email || 'ログイン中ユーザー'}
               </p>
               <button
                 type="button"

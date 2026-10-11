@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import './AuthPages.css';
 
@@ -11,30 +10,20 @@ export const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signInAsGuest } = useAuth();
+  const { signIn } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (isSupabaseConfigured) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        setError('メールアドレスまたはパスワードが正しくありません');
-      } else {
-        navigate('/');
-      }
+    const res = await signIn(email, password);
+    if (res.error) {
+      setError(res.error);
     } else {
-      signInAsGuest();
       navigate('/');
     }
     setLoading(false);
-  };
-
-  const handleGuestLogin = () => {
-    signInAsGuest();
-    navigate('/');
   };
 
   return (
@@ -95,15 +84,6 @@ export const LoginPage = () => {
         </form>
 
         <div className="auth-links">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            style={{ width: '100%', justifyContent: 'center' }}
-            onClick={handleGuestLogin}
-          >
-            👤 ゲストとして今すぐ試す
-          </button>
-
           <Link to="/reset-password" className="auth-link">
             パスワードを忘れた方はこちら
           </Link>
