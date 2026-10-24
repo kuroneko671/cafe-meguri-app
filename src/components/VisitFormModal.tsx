@@ -80,6 +80,9 @@ export const VisitFormModal = ({
       };
       await onSubmit(input);
       onClose();
+    } catch (err: any) {
+      console.error('VisitFormModal handleSubmit error:', err);
+      alert(err.message || '訪問記録の登録に失敗しました');
     } finally {
       setSubmitting(false);
     }

@@ -165,6 +165,9 @@ export const ShopFormModal = ({
       };
       await onSubmit(input);
       onClose();
+    } catch (err: any) {
+      console.error('ShopFormModal handleSubmit error:', err);
+      alert(err.message || '店舗の保存に失敗しました');
     } finally {
       setSubmitting(false);
     }

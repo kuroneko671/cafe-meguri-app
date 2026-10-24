@@ -38,19 +38,45 @@ const LOCAL_STORAGE_KEYS = {
   PERSONS: 'cafe_app_persons',
 };
 
+// UUID検証用ヘルパー
+export function isValidUUID(str: string | null | undefined): boolean {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
 // ==========================================
 // エリア (Areas)
 // ==========================================
 
 export async function fetchAreas(userId?: string): Promise<Area[]> {
   if (isSupabaseConfigured && userId) {
-    const { data, error } = await supabase
-      .from('areas')
-      .select('*')
-      .order('name', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('areas')
+        .select('*')
+        .order('name', { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return data as Area[];
+      if (!error && data && data.length > 0) {
+        return data as Area[];
+      }
+
+      // 初回でSupabase側にデータが0件の場合、デフォルトデータを自動登録（シード）
+      if (!error && data && data.length === 0) {
+        const seedData = DEFAULT_AREAS.map((name) => ({
+          user_id: userId,
+          name,
+        }));
+        const { data: inserted, error: insertError } = await supabase
+          .from('areas')
+          .insert(seedData)
+          .select();
+
+        if (!insertError && inserted && inserted.length > 0) {
+          return inserted as Area[];
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase fetchAreas error, falling back to local storage:', e);
     }
   }
 
@@ -83,6 +109,10 @@ export async function createArea(name: string, userId: string): Promise<Area> {
     if (!error && data) {
       return data as Area;
     }
+    if (error) {
+      console.error('Supabase createArea error:', error);
+      throw new Error(error.message);
+    }
   }
 
   const areas = await fetchAreas(userId);
@@ -101,7 +131,7 @@ export async function createArea(name: string, userId: string): Promise<Area> {
 }
 
 export async function deleteArea(id: string, userId: string): Promise<void> {
-  if (isSupabaseConfigured && userId) {
+  if (isSupabaseConfigured && userId && isValidUUID(id)) {
     await supabase.from('areas').delete().eq('id', id);
   }
   const areas = await fetchAreas(userId);
@@ -115,13 +145,33 @@ export async function deleteArea(id: string, userId: string): Promise<void> {
 
 export async function fetchPurposes(userId?: string): Promise<Purpose[]> {
   if (isSupabaseConfigured && userId) {
-    const { data, error } = await supabase
-      .from('purposes')
-      .select('*')
-      .order('name', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('purposes')
+        .select('*')
+        .order('name', { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return data as Purpose[];
+      if (!error && data && data.length > 0) {
+        return data as Purpose[];
+      }
+
+      // 初回でSupabase側にデータが0件の場合、デフォルトデータを自動登録（シード）
+      if (!error && data && data.length === 0) {
+        const seedData = DEFAULT_PURPOSES.map((name) => ({
+          user_id: userId,
+          name,
+        }));
+        const { data: inserted, error: insertError } = await supabase
+          .from('purposes')
+          .insert(seedData)
+          .select();
+
+        if (!insertError && inserted && inserted.length > 0) {
+          return inserted as Purpose[];
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase fetchPurposes error, falling back to local storage:', e);
     }
   }
 
@@ -152,6 +202,10 @@ export async function createPurpose(name: string, userId: string): Promise<Purpo
     if (!error && data) {
       return data as Purpose;
     }
+    if (error) {
+      console.error('Supabase createPurpose error:', error);
+      throw new Error(error.message);
+    }
   }
 
   const purposes = await fetchPurposes(userId);
@@ -170,7 +224,7 @@ export async function createPurpose(name: string, userId: string): Promise<Purpo
 }
 
 export async function deletePurpose(id: string, userId: string): Promise<void> {
-  if (isSupabaseConfigured && userId) {
+  if (isSupabaseConfigured && userId && isValidUUID(id)) {
     await supabase.from('purposes').delete().eq('id', id);
   }
   const purposes = await fetchPurposes(userId);
@@ -184,14 +238,35 @@ export async function deletePurpose(id: string, userId: string): Promise<void> {
 
 export async function fetchPersons(userId?: string): Promise<Person[]> {
   if (isSupabaseConfigured && userId) {
-    const { data, error } = await supabase
-      .from('persons')
-      .select('*')
-      .order('is_frequent', { ascending: false })
-      .order('name', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('persons')
+        .select('*')
+        .order('is_frequent', { ascending: false })
+        .order('name', { ascending: true });
 
-    if (!error && data && data.length > 0) {
-      return data as Person[];
+      if (!error && data && data.length > 0) {
+        return data as Person[];
+      }
+
+      // 初回でSupabase側にデータが0件の場合、デフォルトデータを自動登録（シード）
+      if (!error && data && data.length === 0) {
+        const seedData = DEFAULT_PERSONS.map((item) => ({
+          user_id: userId,
+          name: item.name,
+          is_frequent: item.is_frequent,
+        }));
+        const { data: inserted, error: insertError } = await supabase
+          .from('persons')
+          .insert(seedData)
+          .select();
+
+        if (!insertError && inserted && inserted.length > 0) {
+          return inserted as Person[];
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase fetchPersons error, falling back to local storage:', e);
     }
   }
 
@@ -227,6 +302,10 @@ export async function createPerson(
     if (!error && data) {
       return data as Person;
     }
+    if (error) {
+      console.error('Supabase createPerson error:', error);
+      throw new Error(error.message);
+    }
   }
 
   const persons = await fetchPersons(userId);
@@ -250,7 +329,7 @@ export async function updatePerson(
   updates: Partial<Pick<Person, 'name' | 'is_frequent'>>,
   userId: string
 ): Promise<void> {
-  if (isSupabaseConfigured && userId) {
+  if (isSupabaseConfigured && userId && isValidUUID(id)) {
     await supabase.from('persons').update(updates).eq('id', id);
   }
   const persons = await fetchPersons(userId);
@@ -259,7 +338,7 @@ export async function updatePerson(
 }
 
 export async function deletePerson(id: string, userId: string): Promise<void> {
-  if (isSupabaseConfigured && userId) {
+  if (isSupabaseConfigured && userId && isValidUUID(id)) {
     await supabase.from('persons').delete().eq('id', id);
   }
   const persons = await fetchPersons(userId);

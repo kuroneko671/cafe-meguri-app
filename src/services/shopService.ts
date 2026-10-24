@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { Shop, ShopFilter, ShopInput } from '../types';
+import { isValidUUID } from './masterDataService';
 
 const LOCAL_STORAGE_KEY_SHOPS = 'cafe_app_shops';
 
@@ -228,6 +229,8 @@ export async function fetchShopById(id: string, userId?: string): Promise<Shop |
 export async function createShop(input: ShopInput, userId: string): Promise<Shop> {
   if (isSupabaseConfigured && userId) {
     try {
+      const validAreaId = isValidUUID(input.area_id) ? input.area_id : null;
+
       const { data: shopData, error: shopError } = await supabase
         .from('shops')
         .insert({
@@ -236,7 +239,7 @@ export async function createShop(input: ShopInput, userId: string): Promise<Shop
           status: input.status,
           shop_status: input.shop_status,
           use_type: input.use_type,
-          area_id: input.area_id,
+          area_id: validAreaId,
           address: input.address,
           lat: input.lat,
           lng: input.lng,
@@ -248,12 +251,18 @@ export async function createShop(input: ShopInput, userId: string): Promise<Shop
         .select()
         .single();
 
-      if (!shopError && shopData) {
+      if (shopError) {
+        console.error('Supabase createShop error:', shopError);
+        throw new Error(`店舗の登録に失敗しました: ${shopError.message}`);
+      }
+
+      if (shopData) {
         const shopId = shopData.id;
 
-        // 用途の関連付け
-        if (input.purpose_ids && input.purpose_ids.length > 0) {
-          const relations = input.purpose_ids.map((purpose_id) => ({
+        // 用途の関連付け（有効なUUIDのみ）
+        const validPurposeIds = (input.purpose_ids || []).filter(isValidUUID);
+        if (validPurposeIds.length > 0) {
+          const relations = validPurposeIds.map((purpose_id) => ({
             shop_id: shopId,
             purpose_id,
           }));
@@ -273,7 +282,8 @@ export async function createShop(input: ShopInput, userId: string): Promise<Shop
         if (fullShop) return fullShop;
       }
     } catch (e) {
-      console.warn('Supabase createShop error, saving locally:', e);
+      console.error('Supabase createShop exception:', e);
+      throw e;
     }
   }
 
@@ -322,7 +332,7 @@ export async function updateShop(
   input: Partial<ShopInput>,
   userId: string
 ): Promise<Shop> {
-  if (isSupabaseConfigured && userId) {
+  if (isSupabaseConfigured && userId && isValidUUID(id)) {
     try {
       const updateData: any = {
         updated_at: new Date().toISOString(),
@@ -331,7 +341,7 @@ export async function updateShop(
       if (input.status !== undefined) updateData.status = input.status;
       if (input.shop_status !== undefined) updateData.shop_status = input.shop_status;
       if (input.use_type !== undefined) updateData.use_type = input.use_type;
-      if (input.area_id !== undefined) updateData.area_id = input.area_id;
+      if (input.area_id !== undefined) updateData.area_id = isValidUUID(input.area_id) ? input.area_id : null;
       if (input.address !== undefined) updateData.address = input.address;
       if (input.lat !== undefined) updateData.lat = input.lat;
       if (input.lng !== undefined) updateData.lng = input.lng;
@@ -340,12 +350,17 @@ export async function updateShop(
       if (input.shop_memo !== undefined) updateData.shop_memo = input.shop_memo;
       if (input.is_favorite !== undefined) updateData.is_favorite = input.is_favorite;
 
-      await supabase.from('shops').update(updateData).eq('id', id);
+      const { error: updateError } = await supabase.from('shops').update(updateData).eq('id', id);
+      if (updateError) {
+        console.error('Supabase updateShop error:', updateError);
+        throw new Error(`店舗の更新に失敗しました: ${updateError.message}`);
+      }
 
       if (input.purpose_ids !== undefined) {
         await supabase.from('shop_purposes').delete().eq('shop_id', id);
-        if (input.purpose_ids.length > 0) {
-          const relations = input.purpose_ids.map((purpose_id) => ({
+        const validPurposeIds = input.purpose_ids.filter(isValidUUID);
+        if (validPurposeIds.length > 0) {
+          const relations = validPurposeIds.map((purpose_id) => ({
             shop_id: id,
             purpose_id,
           }));
@@ -367,7 +382,8 @@ export async function updateShop(
       const fullShop = await fetchShopById(id, userId);
       if (fullShop) return fullShop;
     } catch (e) {
-      console.warn('Supabase updateShop error, updating locally:', e);
+      console.error('Supabase updateShop error:', e);
+      throw e;
     }
   }
 
